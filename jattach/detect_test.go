@@ -17,6 +17,7 @@
 package jattach_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/pivotal-david-osullivan/jattach/jattach"
@@ -34,6 +35,14 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		detect jattach.Detect
 	)
 
+	it.Before(func() {
+		Expect(os.Setenv("BP_JATTACH_ENABLED", "true")).To(Succeed())
+	})
+
+	it.After(func() {
+		Expect(os.Unsetenv("BP_JATTACH_ENABLED")).To(Succeed())
+	})
+
 	it("includes build plan options", func() {
 		Expect(detect.Detect(ctx)).To(Equal(libcnb.DetectResult{
 			Pass: true,
@@ -41,6 +50,10 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 				{
 					Provides: []libcnb.BuildPlanProvide{
 						{Name: "jattach"},
+					},
+					Requires: []libcnb.BuildPlanRequire{
+						{Name: "jattach"},
+						{Name: "jvm-application"},
 					},
 				},
 			},

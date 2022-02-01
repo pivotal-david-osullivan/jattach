@@ -21,10 +21,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/paketo-buildpacks/libpak/sherpa"
+
 	"github.com/buildpacks/libcnb"
 	"github.com/paketo-buildpacks/libpak"
 	"github.com/paketo-buildpacks/libpak/bard"
-	"github.com/paketo-buildpacks/libpak/crush"
 )
 
 type JAttach struct {
@@ -44,8 +45,10 @@ func (j JAttach) Contribute(layer libcnb.Layer) (libcnb.Layer, error) {
 
 	return j.LayerContributor.Contribute(layer, func(artifact *os.File) (libcnb.Layer, error) {
 		j.Logger.Bodyf("Expanding to %s", layer.Path)
-		if err := crush.ExtractTarXz(artifact, layer.Path, 1); err != nil {
-			return libcnb.Layer{}, fmt.Errorf("unable to expand JAttach\n%w", err)
+
+		file := filepath.Join(layer.Path, filepath.Base(artifact.Name()))
+		if err := sherpa.CopyFile(artifact, file); err != nil {
+			return libcnb.Layer{}, fmt.Errorf("unable to copy %s to %s\n%w", artifact.Name(), file, err)
 		}
 
 		binDir := filepath.Join(layer.Path, "bin")
@@ -54,7 +57,7 @@ func (j JAttach) Contribute(layer libcnb.Layer) (libcnb.Layer, error) {
 			return libcnb.Layer{}, fmt.Errorf("unable to mkdir\n%w", err)
 		}
 
-		if err := os.Symlink(filepath.Join(layer.Path, "jattach"), filepath.Join(binDir, "jattach")); err != nil {
+		if err := os.Symlink(file, filepath.Join(binDir, "jattach")); err != nil {
 			return libcnb.Layer{}, fmt.Errorf("unable to symlink JAttach\n%w", err)
 		}
 

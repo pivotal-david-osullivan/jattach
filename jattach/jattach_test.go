@@ -51,7 +51,7 @@ func testJAttach(t *testing.T, context spec.G, it spec.S) {
 
 	it("contributes JAttach", func() {
 		dep := libpak.BuildpackDependency{
-			URI:    "https://localhost/stub-jattach.tar.xz",
+			URI:    "https://localhost/stub-jattach.zip",
 			SHA256: "ed7e1863ed60c58b64a0c99dee127db2388e70540124a7a6810eba8dbda583d6",
 		}
 		dc := libpak.DependencyCache{CachePath: "testdata"}
@@ -67,7 +67,7 @@ func testJAttach(t *testing.T, context spec.G, it spec.S) {
 		Expect(layer.LayerTypes.Cache).To(BeFalse())
 		Expect(layer.LayerTypes.Launch).To(BeTrue())
 
-		Expect(filepath.Join(layer.Path, "jattach")).To(BeARegularFile())
+		Expect(filepath.Join(layer.Path, "bin", "jattach")).To(BeARegularFile())
 	})
 
 }
